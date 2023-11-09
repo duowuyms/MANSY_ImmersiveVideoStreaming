@@ -166,22 +166,10 @@ if __name__ == '__main__':
     parser.add_argument('--qoe-train-ids', type=int, nargs='*')  # train on one or more qoe
     parser.add_argument('--qoe-test-ids', type=int, nargs='*')  # test on one or more qoe
     parser.add_argument('--proc-num', type=int, help='Process number for multiprocessing')
-    parser.add_argument('--horizon', type=int, help='The horizon for expert to look ahead')
+    parser.add_argument('--horizon', type=int, help='The horizon for expert to look ahead', default=4)
     parser.add_argument('--refresh-cache', action='store_true', help='Refresh cache')
     parser.add_argument('--seed', type=int, default=1)
     args = parser.parse_known_args()[0]
-
-    # debug
-    # args.qoe_train_ids = [0, 1]
-    # args.qoe_test_ids = [0, 1]
-    # args.train = True
-    # args.valid = True
-    # args.test = True
-    # args.train_dataset = 'Jin2022'
-    # args.test_dataset = 'Jin2022'
-    # args.refresh_cache = False
-    # args.horizon = 2
-    # args.proc_num = 5
 
     # Train/Valid
     # python run_expert.py --train-dataset Jin2022 --train --valid --horizon 4 --proc-num 8

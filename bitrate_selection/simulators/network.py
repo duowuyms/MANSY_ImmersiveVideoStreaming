@@ -44,37 +44,3 @@ class NetworkTrace:
     def reset(self):
         self.cur_time = 0.
         self.cur_idx = 0
-
-
-def _test_NetworkTrace():
-    network_trace = NetworkTrace('0')
-    # for i in range(10):
-    #     print('(%d, %d)' % (network_trace.trace[i][0], network_trace.trace[i][1]), end='   ')
-    # print()
-    # print('download time %.3f\n' % network_trace.simulate_download_from_time(5000000))
-    # print('download time %.3f\n' % network_trace.simulate_download_from_time(1000000))
-    # print('download time %.3f\n' % network_trace.simulate_download_from_time(500000))
-    # print('download time %.3f\n' % network_trace.simulate_download_from_time(6666666))
-    '''
-    Ground truth:
-    download time 2.131
-    download time 0.310
-    download time 0.155
-    download time 1.822
-    '''
-    network_trace.trace = [(0, 50), (1, 100), (2, 80), (3, 200), (4, 150), (6, 100)]  # for testing
-    print('download time %.3f\n' % network_trace.simulate_download_from_time(70))
-    print('download time %.3f\n' % network_trace.simulate_download_from_time(100))
-    print('download time %.3f\n' % network_trace.simulate_download_from_time(30))
-    print('download time %.3f\n' % network_trace.simulate_download_from_time(80))
-    '''
-    Ground truth:
-    download time 1.200
-    download time 1.050
-    download time 0.375
-    download time 0.625
-    '''
-
-
-if __name__ == '__main__':
-    _test_NetworkTrace()

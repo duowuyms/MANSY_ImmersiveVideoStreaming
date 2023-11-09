@@ -1,8 +1,6 @@
 import os
 import gym
 import numpy as np
-# import sys
-# sys.path.append('/home/wuduo/notmuch/projects/2023_omnidirectional_vs/codes/bitrate_selection')
 from simulators.simulator import Simulator
 from gym import spaces
 from utils.common import (normalize_quality, normalize_size, normalize_throughput, normalize_qoe_weight, 

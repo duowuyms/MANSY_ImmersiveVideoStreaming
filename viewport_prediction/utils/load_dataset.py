@@ -1,9 +1,6 @@
 import os
-import sys
 import numpy as np
-# sys.path.append('/home/wuduo/notmuch/projects/2023_omnidirectional_vs/codes/viewport_prediction/')
 from torch.utils.data import Dataset
-from utils.common import get_config_from_yml
 
 
 class ViewportDataset(Dataset):
@@ -73,7 +70,7 @@ def pack_data(dataset_dir, video_user_pairs, frequency):
 
 
 def create_dataset(dataset, config, his_window, fut_window, trim_head=None, trim_tail=None, frequency=None, sample_step=None, 
-                   dataset_video_split=None, dataset_user_split=None, include=['train', 'valid', 'test']):
+                   dataset_video_split=None, dataset_user_split=None, include=['train', 'valid', 'test', 'test_seen', 'test_unseen']):
     """
     Create dataset.
     :param dataset: dataset name
@@ -104,24 +101,23 @@ def create_dataset(dataset, config, his_window, fut_window, trim_head=None, trim
     if dataset_user_split is None:
         dataset_user_split = dict(config.user_split[dataset])
     
-    if 'test' in include:
-        include.extend(['test_seen', 'test_unseen'])
+    if 'test_seen' in include:
         dataset_video_split['test_seen'] = dataset_video_split['test']
-        dataset_video_split['test_unseen'] = dataset_video_split['test']
         min_length = min(len(dataset_user_split['valid']), len(dataset_user_split['test']))
         dataset_user_split['test_seen'] = dataset_user_split['valid'][:min_length]
+    if 'test_unseen' in include:
+        dataset_video_split['test_unseen'] = dataset_video_split['test']
+        min_length = min(len(dataset_user_split['valid']), len(dataset_user_split['test']))
         dataset_user_split['test_unseen'] = dataset_user_split['test'][:min_length]
-        include.remove('test')
-        dataset_video_split.pop('test')
-        dataset_user_split.pop('test')
 
-    total_video_user_pairs = []
+    total_video_user_pairs = set()
     for split in include:
         videos = dataset_video_split[split]
         users = dataset_user_split[split]
         for video in videos:
             for user in users:
-                total_video_user_pairs.append((video, user))
+                total_video_user_pairs.add((video, user))
+    total_video_user_pairs = list(total_video_user_pairs)
     total_traces = pack_data(dataset_dir, total_video_user_pairs, frequency)
     dataset_splits = []
     for split in include:
@@ -131,26 +127,3 @@ def create_dataset(dataset, config, his_window, fut_window, trim_head=None, trim
         )
     return dataset_splits
 
-
-def _test_create_dataset():
-    dataset = 'Wu2017'
-    dataset_video_split = {'train': [1], 'valid': [2], 'test': [3]}
-    dataset_user_split = {'train': [1], 'valid': [2], 'test': [3]}
-    config = get_config_from_yml()
-    dataset_train, *_ = create_dataset(dataset, config, 5, 5, dataset_video_split=dataset_video_split, dataset_user_split=dataset_user_split)
-    print(len(dataset_train), '\n')
-    print('======== 360-1 =======')
-    for i in range(5):
-        his, cur, fut, *_ = dataset_train[i]
-        print(his)
-        print(cur)
-        print(fut, '\n')
-    print('======== 360-2 =======')
-    for i in range(-5, 0):
-        his, cur, fut, *_ = dataset_train[i]
-        print(his)
-        print(fut, '\n')
-
-
-if __name__ == '__main__':
-    _test_create_dataset()

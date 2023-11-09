@@ -2,7 +2,7 @@ import yaml
 from munch import Munch
 
 
-DEFAULT_CONFIG_YML_PATH = '/home/wuduo/notmuch/projects/2023_omnidirectional_vs/codes/config.yml'
+DEFAULT_CONFIG_YML_PATH = '../config.yml'
 
 
 def get_config_from_yml(config_yml_path=None):

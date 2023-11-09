@@ -1,4 +1,5 @@
 import os
+import argparse
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -76,5 +77,9 @@ def scale_trace(dataset, trace_pkl, up, low, config):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, default='4G')
+    args = parser.parse_known_args()[0]
+
     config = get_config_from_yml()
-    simpify_network_dataset('4G', config)
+    simpify_network_dataset(args.dataset, config)

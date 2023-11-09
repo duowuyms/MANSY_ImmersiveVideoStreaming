@@ -1,7 +1,7 @@
 """
 This file is used to clean the HMD traces and simplify the data.
 The method for cleaning and simplifying data is from [1].
-The codes of this file are mostly from [2].
+The codes of this file are partially from [2].
 
 [1] Anh Nguyen and Zhisheng Yan. 2019. A Saliency Dataset for 360-Degree Videos. In 10th ACM Multimedia Systems
     Conference (MMSys ’19), June 18–21, 2019, Amherst, MA, USA. ACM, New York, NY, USA, 6 pages.
@@ -12,9 +12,8 @@ The codes of this file are mostly from [2].
 """
 
 import os
-import csv
+import argparse
 import numpy as np
-import pickle
 
 from utils import get_config_from_yml
 import head_orientation_lib
@@ -79,7 +78,7 @@ def preprocess_hmd_trace(dataset, config):
                 print(data_path)
 
 
-def simplify_hmd_trace(dataset, config, frequency=10):
+def simplify_hmd_trace(dataset, config, frequency=5):
     """
     Simplify viewport traces according to the specified sampling frequency (e.g., 5 Hz).
 
@@ -117,6 +116,10 @@ def simplify_hmd_trace(dataset, config, frequency=10):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, default='Jin2022')
+    parser.add_argument('--frequency', type=int, default=5)
+    args = parser.parse_known_args()[0]
+
     config = get_config_from_yml()
-    # preprocess_hmd_trace('Wu2017', config)
-    simplify_hmd_trace('Jin2022', config)
+    simplify_hmd_trace(args.dataset, config)

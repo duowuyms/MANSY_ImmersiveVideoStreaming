@@ -2,8 +2,6 @@ import os
 import gym
 import pickle
 import numpy as np
-# import sys
-# sys.path.append('/home/wuduo/notmuch/projects/2023_omnidirectional_vs/codes/bitrate_selection')
 from tqdm import trange
 from simulators.simulator import ExpertSimulator
 from utils.common import (normalize_quality, normalize_size, normalize_throughput, normalize_qoe_weight, 
@@ -12,6 +10,10 @@ from utils.qoe import QoEModelExpert
 
 
 class ExpertEnv(gym.Env):
+    """
+    A environment class for an MPC-based expert.
+    You may use it to develop your own expert for imitation learning.
+    """
     metadata = {"render.modes": ["human", "rgb_array"], "video.frames_per_second": 50}
 
     init = False
@@ -185,7 +187,6 @@ class ExpertEnv(gym.Env):
         self.current_user = self.users[self.samples[self.sample_id][1]]
         self.current_trace = self.traces[self.samples[self.sample_id][2]]
         self.current_qoe_weight = np.array(self.qoe_weights[self.samples[self.sample_id][3]], dtype=np.float32)
-        # print(self.mode, self.sample_id, self.sample_len, self.current_video, self.current_user, self.current_trace, self.current_qoe_weight)
 
         self.simulator = ExpertSimulator(config=self.config,
                                          dataset=self.dataset,
@@ -286,7 +287,6 @@ class ExpertEnv(gym.Env):
                 'past_quality_variances': self.past_quality_variances,
                 'past_rebuffering': self.past_rebuffering,
             })
-            # print(self.simulator.start_chunk, self.simulator.end_chunk, self.simulator.next_chunk)
             self._log()
         else:
             self.next_chunk_size = self.simulator.get_next_chunk_size()
@@ -419,6 +419,5 @@ class ExpertEnv(gym.Env):
             assert record_buf_size == self.simulator.buffer.buf_size
         best_action = rates2action(rate_in=self.all_bitrates[best_index][0][0], 
                                    rate_out=self.all_bitrates[best_index][0][1])
-        # print(self.simulator.next_chunk, best_action, self.all_bitrates[best_index][0], best_action_reward)
         return best_action
 

@@ -45,10 +45,8 @@ class ViewportEmbedding(nn.Module):
 
 
 class ViewportTransformerMTIO(nn.Module):
-    def __init__(self, in_channel, num_head, fut_window, d_model, dim_feedforward, num_encoder_layers=2, 
-                 num_decoder_layers=2, batch_first=True, dropout=0.2, distill=False, device='cuda', repeat_prob=0.0, seed=1):
-        print('ViewportTransformerMTIO, head =', num_head)
-        print('Repeat probability =', repeat_prob)
+    def __init__(self, in_channel, fut_window, d_model, dim_feedforward, num_head=3, num_encoder_layers=2, 
+                 num_decoder_layers=2, batch_first=True, dropout=0.2, device='cuda', repeat_prob=0.5, seed=1):
         super().__init__()
 
         self.in_channel = in_channel
@@ -57,14 +55,14 @@ class ViewportTransformerMTIO(nn.Module):
         self.embedding = ViewportEmbedding(in_channels=in_channel * num_head, embedding_dim=d_model).to(device)
         self.transformer = Transformer(d_model=d_model, num_encoder_layers=num_encoder_layers,
                                        num_decoder_layers=num_decoder_layers, dim_feedforward=dim_feedforward,
-                                       batch_first=batch_first, distill=distill)
+                                       batch_first=batch_first)
         self.positional_embedding = PositionalEncoding(d_model=d_model, dropout=dropout).to(device)
         self.predictor = nn.Sequential(nn.Linear(d_model, in_channel * num_head), nn.Sigmoid())
         self.device = device
         self.repeat_prob = repeat_prob
         self.seed = seed
 
-    def forward(self, history, current, future, teacher_forcing=True):
+    def forward(self, history, current, future):
         """
         Forward pass through the network. Encode the past trajectory and decode the future trajectory.
         :param history: (Tensor) Historical trajectories [batch_size x M x in_channels]
@@ -74,6 +72,8 @@ class ViewportTransformerMTIO(nn.Module):
         multi_history = [history]
         multi_current = [current]
         multi_future = [future]
+        # repeat_prob is a trick borrowed from the following paper:
+        # https://arxiv.org/abs/2010.06610
         if random.random() < self.repeat_prob:
             multi_history = [history for _ in range(self.num_head)]
             multi_current = [current for _ in range(self.num_head)]
@@ -88,14 +88,7 @@ class ViewportTransformerMTIO(nn.Module):
         multi_history = torch.cat(multi_history, dim=-1)
         multi_current = torch.cat(multi_current, dim=-1)
         multi_future = torch.cat(multi_future, dim=-1)
-        if not teacher_forcing:
-            pred = self._process_src_current(src=multi_history, current=multi_current)
-        else:
-            with torch.no_grad():
-                out = self._process_src_tgt(src=multi_history, tgt=torch.cat([multi_current, multi_future[:, :-1]], dim=1))
-                pred = self.predictor(out)
-            out = self._process_src_tgt(src=multi_history, tgt=torch.cat([multi_current, pred[:, :-1]], dim=1))
-            pred = self.predictor(out)
+        pred = self._process_src_current(src=multi_history, current=multi_current)
         return pred, multi_future
         
     def loss_function(self, pred, gt):
@@ -171,30 +164,3 @@ class ViewportTransformerMTIO(nn.Module):
             tgt = torch.cat([tgt, pred.unsqueeze(1)], dim=1)
         pred = tgt[:, 1:]
         return pred
-
-
-def test_train_mtio():
-    model = ViewportTransformerMTIO(2, 3, 25, device='cpu')
-    past_viewport = torch.rand(64, 5, 2)
-    current_viewport = torch.rand(64, 1, 2)
-    future_viewport = torch.rand(64, 25, 2)
-    inputs = [(past_viewport, current_viewport), future_viewport]
-    pred, gt = model(inputs)
-    print(pred.shape)
-    print(gt.shape)
-    print(model.loss_function(pred, gt))
-
-
-def test_eval_mtio():
-    model = ViewportTransformerMTIO(2, 3, 25, device='cpu')
-    model.eval()
-    past_viewport = torch.rand(64, 5, 2)
-    current_viewport = torch.rand(64, 1, 2)
-    inputs = [past_viewport, current_viewport]
-    pred = model.sample(inputs)
-    print(pred.shape)
-
-
-if __name__ == '__main__':
-    test_train_mtio()
-    test_eval_mtio()

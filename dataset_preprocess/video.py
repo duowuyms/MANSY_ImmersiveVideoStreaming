@@ -1,5 +1,6 @@
 import json
 import os
+import argparse
 import subprocess
 import time
 
@@ -168,5 +169,9 @@ def preprocess_video_dataset(dataset, config):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dataset', type=str, default='Jin2022')
+    args = parser.parse_known_args()[0]
+
     config = get_config_from_yml()
-    preprocess_video_dataset('Jin2022', config)
+    preprocess_video_dataset(args.dataset, config)

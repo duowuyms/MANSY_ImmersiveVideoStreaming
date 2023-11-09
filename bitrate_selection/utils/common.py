@@ -7,7 +7,7 @@ from collections import deque
 from prettytable import PrettyTable
 
 
-DEFAULT_CONFIG_YML_PATH = '/home/wuduo/notmuch/projects/2023_omnidirectional_vs/codes/config.yml'
+DEFAULT_CONFIG_YML_PATH = '../config.yml'
 
 
 def get_config_from_yml(config_yml_path=None):
@@ -58,6 +58,10 @@ def normalize_qoe_weight(qoe_weight):
 
 
 def generate_environment_samples(video_list, user_list, trace_list, qoe_list, seed=0):
+    """
+    Exhaustive training over all possible environments is expensive and unnecessary.
+    So this function samples some environments while making sure that each video/user/trace/qoe will be used at least once 
+    """
     def _sample_ids(_id_list, _list_len, _max_len):
         _ret = []
         for _i in range(_max_len):
@@ -81,32 +85,13 @@ def generate_environment_samples(video_list, user_list, trace_list, qoe_list, se
 
 
 def generate_environment_test_samples(video_list, user_list, trace_list, qoe_list):
-    # def _sample_ids(_id_list, _list_len, _max_len):
-    #     _ret = []
-    #     for _i in range(_max_len):
-    #         _ret.append(_id_list[_i % _list_len])
-    #     return _ret
-
-    # def _sample_qoe_id(trace_len, qoe_len, _max_len):
-    #     _ret = []
-    #     repeat_time = trace_len
-    #     for i in range(qoe_len):
-    #         for j in range(repeat_time):
-    #             _ret.append(i)
-    #     return _ret
-
+    """
+    Unlike training, testing on all possible environments is necessary.
+    """
     video_list_len = len(video_list)
     user_list_len = len(user_list)
     trace_list_len = len(trace_list)
     qoe_list_len = len(qoe_list)
-    # max_len = trace_list_len * qoe_list_len
-
-    # video_ids = _sample_ids(list(range(video_list_len)), video_list_len, max_len)
-    # user_ids = _sample_ids(list(range(user_list_len)), user_list_len, max_len)
-    # trace_ids = _sample_ids(list(range(trace_list_len)), trace_list_len, max_len)
-    # qoe_ids = _sample_qoe_id(trace_list_len, qoe_list_len, max_len)
-
-    # environment_samples = list(zip(video_ids, user_ids, trace_ids, qoe_ids))
 
     environment_samples = [(i, j, k, l) for i in range(video_list_len) for j in range(user_list_len)
                            for k in range(trace_list_len) for l in range(qoe_list_len)]

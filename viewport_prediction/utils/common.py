@@ -4,7 +4,7 @@ import yaml
 from munch import Munch
 
 
-DEFAULT_CONFIG_YML_PATH = '/home/wuduo/notmuch/projects/2023_omnidirectional_vs/codes/config.yml'
+DEFAULT_CONFIG_YML_PATH = '../config.yml'
 
 
 def get_config_from_yml(config_yml_path=None):
@@ -43,8 +43,8 @@ def find_block_covered_by_point(x: int, y: int, block_width: int, block_height: 
     return w, h
 
 
-def find_tiles_covered_by_viewport(x, y, video_width, video_height, fov_width, fov_height,
-                                   tile_width, tile_height, tile_num_width, tile_num_height):
+def find_tiles_covered_by_viewport(x, y, video_width, video_height, tile_width, tile_height, 
+                                   tile_num_width, tile_num_height, fov_width=600, fov_height=300):
     viewport = np.zeros([tile_num_height, tile_num_width], dtype=np.uint8)
     half_fov_width = fov_width // 2
     half_fov_height = fov_height // 2
@@ -59,7 +59,9 @@ def find_tiles_covered_by_viewport(x, y, video_width, video_height, fov_width, f
 
 
 def to_position_normalized_cartesian(values):
-    # bound position within [0, 1]^2
+    """
+    Bound position within [0, 1]^2.
+    """
     values_clone = values.clone()
     indices_negative = values < 0
     indices_greater_than_one = values > 1
@@ -69,10 +71,12 @@ def to_position_normalized_cartesian(values):
 
 
 def mean_square_error(position_a, position_b, dimension=2):
+    """
+    Mean square error that considers the periodicity of viewport positions.
+    """
     error = torch.abs(position_a - position_b)
     error = torch.minimum(error, torch.abs(position_a + 1 - position_b))
     error = torch.minimum(error, torch.abs(position_a - 1 - position_b))
-    # return torch.sum((position_a - position_b) * (position_a - position_b), dim=-1)
     return torch.sum(error * error, dim=-1) / dimension
 
 
@@ -121,24 +125,3 @@ def _find_regions_covered_by_fov(fov_x1, fov_y1, fov_x2, fov_y2, video_width, vi
             regions = [(fov_x1, 0, fov_x2, fov_y2 % video_height),
                        (fov_x1, fov_y1, fov_x2, video_height)]
     return regions
-
-
-if __name__ == '__main__':
-    a = torch.tensor([[[-0.2, 1.3, ], [0.4, -0.5, ]], [[1.2, 4.3, ], [1.4, 1.0, ]], [[1.2, 1.3, ], [1.4, 1.5, ]]])
-    b = torch.tensor([[[-1.4, 1.5, ], [1.1, -5.4, ]], [[1.4, 4.5, ], [1.1, 1.0, ]], [[1.4, 1.5, ], [1.1, 1.4, ]]])
-    a = torch.tensor([
-        [[0.5, 0.5], [0.1, 0.1], [0.9, 0.9], [0.9, 0.9]],
-    ])
-    b = torch.tensor([
-        [[0.9, 0.9], [0.9, 0.9], [0.8, 0.8], [0.2, 0.2]]
-    ])
-    print(a.shape, b.shape)
-    print(a)
-    print(b)
-    # print(metric_orth_dist(a, b).shape)
-    print(mean_square_error(a, b))
-    print(mean_square_error(a, b).shape)
-    # print(to_position_normalized_cartesian(a))
-    # print(to_position_normalized_cartesian(b))
-    # print(torch.minimum(a, b))
-    # print(a)

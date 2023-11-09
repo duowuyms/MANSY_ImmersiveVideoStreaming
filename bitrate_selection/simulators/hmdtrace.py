@@ -21,15 +21,3 @@ class HMDTrace:
             gt_viewport = gt_viewport.reshape(self.tile_num_height, self.tile_num_width)
             pred_viewport = pred_viewport.reshape(self.tile_num_height, self.tile_num_width)
         return gt_viewport, pred_viewport, accuracy
-
-
-def _test_HMDTrace():
-    hmdtrace = HMDTrace('1', 1)
-    print(hmdtrace.get_hmd_trace_info())
-    for i in range(6, 159):
-        print(f'Viewport of chunk #{i}')
-        print(hmdtrace.get_viewport(i, flatten=False))
-
-
-if __name__ == '__main__':
-    _test_HMDTrace()

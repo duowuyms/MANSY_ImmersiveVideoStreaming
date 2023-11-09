@@ -1,11 +1,9 @@
 
 class PlaybackBuffer:
     def __init__(self, startup_download, chunk_length):
-        # TODO: check whether such initialization is appropriate
         self.startup_download = startup_download
         self.chunk_length = chunk_length
-        # self.buf_size = startup_download
-        self.buf_size = chunk_length * 3
+        self.buf_size = chunk_length * 3  # TODO: check whether such initialization is appropriate
 
     def push_chunk(self, chunk_length, download_time):
         rebuf_time = 0.
@@ -23,5 +21,4 @@ class PlaybackBuffer:
         self.buf_size = buf_size
 
     def reset(self):
-        # self.buf_size = self.startup_download
         self.buf_size = self.chunk_length * 3

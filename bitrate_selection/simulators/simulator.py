@@ -151,45 +151,8 @@ class ExpertSimulator(Simulator):
             rate = tile_rates[tile_id]
             selected_tile_sizes.append(size_info[rate][tile_id])
             selected_tile_quality.append(quality_info[rate][tile_id])
-        # selected_tile_sizes = np.array(selected_tile_sizes, dtype=np.float32)
         selected_tile_quality = np.array(selected_tile_quality, dtype=np.float32)
         chunk_size = sum(selected_tile_sizes)
         viewport_quality = sum(actual_viewport * selected_tile_quality) / sum(actual_viewport)
         return chunk_size, viewport_quality, selected_tile_quality
         
-
-
-def _test_simulator():
-    from random import randint
-    from utils.qoe import QoEModel
-    from utils.common import get_config_from_yml
-
-    config = get_config_from_yml()
-    sim = Simulator(config, 'Wu2017', 1, 1, '4G', 1, 5)
-    qoe_model = QoEModel(config, 1, 1, 1)
-    sim.chunk_count = 5  # for testing
-    over = False
-    while not over:
-        # tile_rates = sim.get_viewport(sim.next_chunk, sim.next_chunk + 1, flatten=True)
-        # tile_rates = tile_rates * 2
-        tile_rates = np.zeros(64, dtype=np.uint8)
-        tile_sizes, tile_quality, chunk_size, chunk_quality, download_time, rebuffer_time, acutal_viewport, over = \
-            sim.simulate_download(tile_rates)
-        qoe, qoe1, qoe2, qoe3 = qoe_model.calculate_qoe(acutal_viewport, tile_quality, rebuffer_time)
-        print('Tile rates:', tile_rates)
-        print('Tile sizes:', tile_sizes)
-        print('Tile quality:', tile_quality)
-        print('Chunk size:', chunk_size)
-        print('Chunk quality:', chunk_quality)
-        print('Download time:', download_time)
-        print('Rebuffer time:', rebuffer_time)
-        print('Actual viewport:', acutal_viewport)
-        print('Qoe:', qoe)
-        print('Qoe1 (viewport quality):', qoe1)
-        print('Qoe2 (rebuffer time):', qoe2)
-        print('Qoe3 (viewport quality variance):', qoe3)
-        print()
-
-
-if __name__ == '__main__':
-    _test_simulator()

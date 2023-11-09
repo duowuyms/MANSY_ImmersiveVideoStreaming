@@ -7,13 +7,9 @@ import torch
 import numpy as np
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
-from models import DVMS, BasicLSTM, EPASS360, LinearRegression, ViewportTransformerMTIO
+from models import LinearRegression, ViewportTransformerMTIO
 from utils.common import get_config_from_yml, find_tiles_covered_by_viewport, find_block_covered_by_point
 from utils.load_dataset import create_dataset
-
-
-DEFAULT_FOV_WIDTH = 600
-DEFAULT_FOV_HEIGHT = 300
 
 
 def predict(args, config, model, videos, users, dataloader, results_dir, model_path):
@@ -42,13 +38,11 @@ def predict(args, config, model, videos, users, dataloader, results_dir, model_p
             pred_viewport = np.zeros(config.tile_total_num, dtype=np.uint8)
             for j in range(args.dataset_frequency):
                 gt_x, gt_y = int(value[i][j][0] * config.video_width), int(value[i][j][1] * config.video_height)
-                gt_viewport |= find_tiles_covered_by_viewport(gt_x, gt_y, config.video_width, config.video_height, DEFAULT_FOV_WIDTH, 
-                                                              DEFAULT_FOV_HEIGHT, config.tile_width, config.tile_height, config.tile_num_width, 
-                                                              config.tile_num_height).reshape(-1)
+                gt_viewport |= find_tiles_covered_by_viewport(gt_x, gt_y, config.video_width, config.video_height, config.tile_width, 
+                                                              config.tile_height, config.tile_num_width, config.tile_num_height).reshape(-1)
                 pred_x, pred_y = int(value[i][j][2] * config.video_width), int(value[i][j][3] * config.video_height)
-                pred_viewport |= find_tiles_covered_by_viewport(pred_x, pred_y, config.video_width, config.video_height, DEFAULT_FOV_WIDTH, 
-                                                                DEFAULT_FOV_HEIGHT, config.tile_width, config.tile_height, config.tile_num_width,
-                                                                config.tile_num_height).reshape(-1)
+                pred_viewport |= find_tiles_covered_by_viewport(pred_x, pred_y, config.video_width, config.video_height, config.tile_width,
+                                                                config.tile_height, config.tile_num_width, config.tile_num_height).reshape(-1)
             accuracy = np.sum(gt_viewport & pred_viewport) / np.sum((gt_viewport | pred_viewport))  # IoU
             viewports.append((i + args.trim_head // args.dataset_frequency, gt_viewport, pred_viewport, accuracy))
         data[key] = viewports
@@ -70,55 +64,19 @@ def predict(args, config, model, videos, users, dataloader, results_dir, model_p
                 file.write(f'{value[i][0]},{gt_viewport},{pred_viewport},{value[i][3]}\n')
             file.close()
 
-    # derive predicted center tile of each viewport for Parima
-    data = {}
-    for key, value in results.items():
-        viewport_centers = []
-        for i in range(len(value)):
-            for j in range(args.dataset_frequency):
-                pred_x, pred_y = int(value[i][j][2] * config.video_width), int(value[i][j][3] * config.video_height)
-                pred_tile_x, pred_tile_y = find_block_covered_by_point(pred_x, pred_y, config.tile_width, config.tile_height)
-                viewport_centers.append((i * args.dataset_frequency + j + args.trim_head, pred_tile_x, pred_tile_y))
-        data[key] = viewport_centers
-    
-    for key, value in data.items():
-        video, user = key
-        base_dir = os.path.join(results_dir, f'video{video}')
-        if not os.path.exists(base_dir):
-            os.makedirs(base_dir)
-        pkl_path = os.path.join(base_dir, f'user{user}_vp_center.pkl')
-        csv_path = os.path.join(base_dir, f'user{user}_vp_center.csv')
-        pickle.dump(value, open(pkl_path, 'wb'))
-        with open(csv_path, 'w', encoding='utf-8') as file:
-            head = 'frame,tile_x,tile_y\n'
-            file.write(head)
-            for i in range(len(value)):
-                file.write(f'{value[i][0]},{value[i][1]},{value[i][2]}\n')
-            file.close()
 
-
-def create_model(model_name, fut_window, hidden_dim, block_num, head_num, device, seed):
+def create_model(model_name, fut_window, hidden_dim, block_num, device, seed):
     model = None
-    if model_name == 'dvms':
-        model = DVMS(in_channels=2, fut_window=fut_window, hidden_dim=hidden_dim, latent_dim=hidden_dim * 2,
-                     n_hidden=block_num, device=device, seed=seed)
-    elif model_name == 'regression':
-        model = LinearRegression(fut_window=fut_window, device=device, seed=seed)
-    elif model_name == 'lstm':
-        model = BasicLSTM(in_channels=2, fut_window=fut_window, hidden_dim=hidden_dim, n_hidden=block_num,
-                          device=device, seed=seed)
-    elif model_name == 'epass360':
-        model = EPASS360(in_channels=2, fut_window=fut_window, hidden_dim=hidden_dim, n_hidden=block_num,
-                         device=device, seed=seed)
+    if model_name == 'regression':
+        model = LinearRegression(fut_window=fut_window, device=device)
     elif model_name == 'mtio':
-        model = ViewportTransformerMTIO(in_channel=2, num_head=head_num, fut_window=fut_window, d_model=hidden_dim,
-                                        dim_feedforward=hidden_dim, num_encoder_layers=block_num, num_decoder_layers=block_num,
-                                        device=device, seed=seed, distill=args.distill)
+        model = ViewportTransformerMTIO(in_channel=2, fut_window=fut_window, d_model=hidden_dim, dim_feedforward=hidden_dim,
+                                        num_encoder_layers=block_num, num_decoder_layers=block_num, device=device, seed=seed)
     return model
 
 
 def run(args, config):
-    assert args.model in ['dvms', 'regression', 'mtio', 'epass360', 'lstm']
+    assert args.model in ['regression', 'mtio']
 
     # seed
     np.random.seed(args.seed)
@@ -131,7 +89,7 @@ def run(args, config):
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
 
-    model = create_model(args.model, args.fut_window, args.hidden_dim, args.block_num, args.head_num, args.device, args.seed).to(args.device)
+    model = create_model(args.model, args.fut_window, args.hidden_dim, args.block_num, args.device, args.seed).to(args.device)
     
     if args.compile:
         assert torch.__version__ >= '2.0.0', 'Compile model requires torch version >= 2.0.0, but current torch version is ' + torch.__version__
@@ -158,19 +116,15 @@ if __name__ == '__main__':
 
     # ========== model/plm settings related arguments ==========
     parser.add_argument('--device', action='store', dest='device', help='Device (cuda or cpu) to run experiment.')
-    parser.add_argument('--model', action='store', dest='model', help='Model type, e.g., DVMS.')
-    parser.add_argument('--head-num', type=int, help='Number of input-output heads')
+    parser.add_argument('--model', action='store', dest='model', help='Model type')
     parser.add_argument('--hidden-dim', type=int, help='Number of hidden dimensions')
     parser.add_argument('--block-num', type=int, help='Number of encoder/decoder/LSTM/GRU blocks')
     parser.add_argument('--model-path', action='store', dest='model_path', help='Path to load model')
-    parser.add_argument('--distill', action="store_true", help='Enable distillation (for MTIO Tranformer only).')
     parser.add_argument('--compile', action='store_true', dest='compile', 
                         help='(Optional) Compile model for speed up (available only for PyTorch 2.0).')
     
-    # ========== dataset settings related arguments ==========
-    parser.add_argument('--dataset', action='store', dest='dataset', help='Dataset for prediction.')
-    
     # ========== dataset loading/processing settings related arguments ==========
+    parser.add_argument('--dataset', action='store', dest='dataset', help='Dataset for prediction.')
     parser.add_argument('--his-window', action='store', dest='his_window', help='Historical window', type=int)
     parser.add_argument('--fut-window', action='store', dest='fut_window', help='Future (prediction) window (default 10).', type=int)
     parser.add_argument('--trim-head', action='store', dest='trim_head',
@@ -182,34 +136,14 @@ if __name__ == '__main__':
     parser.add_argument('--sample-step', action='store', dest='sample_step',
                         help='(Optional) The steps for sampling viewports (default 5).', type=int)
     parser.add_argument('--bs', action="store", dest='bs', help='Neural network batch size.', type=int)
-    parser.add_argument('--seed', action="store", dest='seed', type=int, default=1,
+    parser.add_argument('--seed', action="store", dest='seed', type=int, default=5,
                         help='(Optional) Random seed (default to 1).')
     
     
     args = parser.parse_args()
 
-    # debug
-    args.dataset = 'Jin2022'
-    args.model = 'mtio'
-    args.his_window = 5
-    args.fut_window = 5
-    # args.lr = 1e-4
-    # args.epochs = 200
-    args.bs = 256
-    args.seed = 1
-    args.dataset_frequency = 5
-    args.sample_step = 5
-    args.distill = True
-    args.block_num = 2
-    args.hidden_dim = 512
-    args.head_num = 3
-    args.model_path = '/data/wuduo/2023_omnidirectional_vs/models/viewport_prediction/mtio_head3/Jin2022/5Hz/his_5_fut_15_hid_512_ss_5_epochs_100_bs_256_lr_0.0001_seed_1_tf_False_rp_0.5_dis_True_best_model.pth'
-    # args.model_path = '/data/wuduo/2023_omnidirectional_vs/models/viewport_prediction/mtio_head3/Wu2017/5Hz/his_5_fut_15_hid_512_ss_5_epochs_200_bs_256_lr_0.0001_seed_1_tf_False_rp_0.5_dis_True_best_model.pth'
-    args.device = 'cuda:3'
-    # args.compile = False
-
-    # command example:
-    # python predict.py --model regression --device cpu --dataset Wu2017 --bs 64 --seed 1
+    # command example
+    # python predict.py --model regression --device cpu --dataset Jin2022 --bs 64 --seed 1
 
     # handle defautl settings
     config = get_config_from_yml()
