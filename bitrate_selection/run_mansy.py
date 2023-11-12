@@ -13,12 +13,12 @@ from tianshou.data import Batch, Collector, VectorReplayBuffer
 from tianshou.env import DummyVectorEnv
 from tianshou.utils import TensorboardLogger
 from tianshou.utils.net.common import ActorCritic
-from envs.gen360_env import GEN360Env
-from models.gen360 import Actor, Critic, QoEIdentifier, FeatureNet, QoEIdentifierFeatureNet
-from models.gen360_trainer import OnpolicyTrainer
-from models.gen360_ppo import PPOPolicy
+from envs.mansy_env import MANSYEnv
+from models.mansy import Actor, Critic, QoEIdentifier, FeatureNet, QoEIdentifierFeatureNet
+from models.mansy_trainer import OnpolicyTrainer
+from models.mansy_ppo import PPOPolicy
 from utils.common import get_config_from_yml, read_log_file
-from utils.gen360_utils import behavior_cloning_pretraining
+from utils.mansy_utils import behavior_cloning_pretraining
 from utils.console_logger import ConsoleLogger
 
 
@@ -30,8 +30,8 @@ def train(args, config, policy, qoe_weights, identifier, identifier_optimizer, m
     if os.path.exists(valid_log_path):
         os.remove(valid_log_path)
 
-    env = GEN360Env(config, args.train_dataset, args.network_dataset, qoe_weights, identifier, args.lamb, valid_log_path, config.startup_download,
-                    mode='valid', seed=args.seed, device=args.device, use_identifier=args.use_identifier)
+    env = MANSYEnv(config, args.train_dataset, args.network_dataset, qoe_weights, identifier, args.lamb, valid_log_path, config.startup_download,
+                   mode='valid', seed=args.seed, device=args.device, use_identifier=args.use_identifier)
     env.seed(args.seed)
 
     args.train_num = 1  # set to 1 to avoid error
@@ -42,13 +42,13 @@ def train(args, config, policy, qoe_weights, identifier, identifier_optimizer, m
     print('Episode per test:', args.episode_per_test)
 
     train_env = DummyVectorEnv(
-        [lambda: GEN360Env(config, args.train_dataset, args.network_dataset, qoe_weights, identifier, args.lamb, train_log_path, config.startup_download,
-                           mode='train', seed=args.seed, worker_num=args.train_num, device=args.device, use_identifier=args.use_identifier) for _ in range(args.train_num)],
+        [lambda: MANSYEnv(config, args.train_dataset, args.network_dataset, qoe_weights, identifier, args.lamb, train_log_path, config.startup_download,
+                          mode='train', seed=args.seed, worker_num=args.train_num, device=args.device, use_identifier=args.use_identifier) for _ in range(args.train_num)],
 
     )
     valid_env = DummyVectorEnv(
-        [lambda: GEN360Env(config, args.train_dataset, args.network_dataset, qoe_weights, identifier, args.lamb, valid_log_path, config.startup_download,
-                           mode='valid', seed=args.seed, worker_num=args.test_num, device=args.device, use_identifier=args.use_identifier) for _ in range(args.test_num)],
+        [lambda: MANSYEnv(config, args.train_dataset, args.network_dataset, qoe_weights, identifier, args.lamb, valid_log_path, config.startup_download,
+                          mode='valid', seed=args.seed, worker_num=args.test_num, device=args.device, use_identifier=args.use_identifier) for _ in range(args.test_num)],
     )
     print('Training QoE weights:', qoe_weights)
     
@@ -111,7 +111,7 @@ def train(args, config, policy, qoe_weights, identifier, identifier_optimizer, m
     train_collector = Collector(
         policy=policy, env=train_env, buffer=replay_buffer
     )
-    log_path = os.path.join(models_dir, 'gen360_tb_logger')
+    log_path = os.path.join(models_dir, 'mansy_tb_logger')
     writer = SummaryWriter(log_path)
     logger = TensorboardLogger(writer)
     valid_collector = Collector(policy, valid_env)
@@ -145,8 +145,8 @@ def test(args, config, policy, qoe_weights, identifier, models_dir, results_dir)
     if os.path.exists(test_log_path):
         os.remove(test_log_path)
 
-    test_env = GEN360Env(config, args.test_dataset, args.network_dataset, qoe_weights, identifier, args.lamb, test_log_path, config.startup_download,
-                         mode='test', seed=args.seed, device=args.device)
+    test_env = MANSYEnv(config, args.test_dataset, args.network_dataset, qoe_weights, identifier, args.lamb, test_log_path, config.startup_download,
+                        mode='test', seed=args.seed, device=args.device)
     test_env.seed(args.seed)
 
     policy_path = args.policy_path
@@ -281,7 +281,7 @@ def run(args, config):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--task', type=str, default='gen360')
+    parser.add_argument('--task', type=str, default='mansy')
     parser.add_argument('--reward-threshold', type=float, default=500000.0)
     parser.add_argument('--seed', type=int, default=5)
     parser.add_argument('--buffer-size', type=int, default=1000000)
@@ -312,7 +312,7 @@ if __name__ == '__main__':
     parser.add_argument('--resume', action="store_true")
     parser.add_argument("--save-interval", type=int, default=4)
     # experiment special
-    parser.add_argument('--model', type=str, default='gen360')
+    parser.add_argument('--model', type=str, default='mansy')
     parser.add_argument('--hidden-dim', type=int, default=128)
     parser.add_argument('--identifier-lr', type=float, default=1e-4)
     parser.add_argument('--identifier-update-round', type=int, default=2)
@@ -340,7 +340,7 @@ if __name__ == '__main__':
     args = parser.parse_known_args()[0]
 
     # command example
-    # python run_gen360.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per-collect 2000 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:1 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier
+    # python run_mansy.py --train --test --epoch 1000 --step-per-epoch 4096 --step-per-collect 4096 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:0 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier
 
     print(args)
     

@@ -6,14 +6,14 @@ from gym import spaces
 from utils.common import (normalize_quality, normalize_size, normalize_throughput, normalize_qoe_weight, 
                           action2rates, rates2action, allocate_tile_rates, generate_environment_samples,
                           generate_environment_test_samples)
-from utils.gen360_utils import calculate_indentifier_reward
+from utils.mansy_utils import calculate_indentifier_reward
 from utils.qoe import QoEModel
 
 
 CNT = 0
 OBSERVE_ROUND = 500
 
-class GEN360Env(gym.Env):
+class MANSYEnv(gym.Env):
     metadata = {"render.modes": ["human", "rgb_array"], "video.frames_per_second": 50}
 
     def __init__(self, config, dataset, network_dataset, qoe_weights, identifier, lamb, log_path, 

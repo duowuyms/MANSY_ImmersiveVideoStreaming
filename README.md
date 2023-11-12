@@ -1,18 +1,15 @@
-# Gen360_360VideoStreaming
-A trace-driven simulator for 360-degree video streaming and implementation of paper "GEN360: Generalizing Neural Adaptive 360-Degree Video Streaming With Ensemble and Representation Learning".
+# MANSY_ImmersiveVideoStreaming
+Implementation of paper "MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning" and a trace-driven simulator for immsersive (or, omnidirectional, 360-degree) video streaming.
+
+MANSY is short for "ense**M**ble and represent**A**tion lear**N**ing based **SY**stem for tile-based immersive video streaming". It is also named after Duo's beloved, as a way to express gratitude for her generous support towards Duo's research career.
 
 Abstract:
-> The popularity of 360-degree videos has prompted extensive research into neural-adaptive tile-based streaming to optimize 360-degree video transmission over networks with limited bandwidth. However, the diversity of users’ viewing patterns and Quality of Experience
-(QoE) preferences has not been fully addressed yet by existing neural-adaptive approaches for viewport prediction and bitrate selection. Their performance can significantly deteriorate when users’ actual viewing patterns and QoE preferences differ considerably
-from those observed during the training phase, resulting in poor generalization. In this paper, we propose GEN360, a novel streaming system that embraces user diversity to improve generalization. Specifically, to accommodate users’ diverse viewing patterns, we
-design a Transformer-based viewport prediction model with an efficient multi-viewport trajectory input output architecture based on implicit ensemble learning. Besides, we for the first time combine the advanced representation learning and deep reinforcement
-learning to train the bitrate selection model to maximize diverse QoE objectives, enabling the model to generalize across users with diverse preferences. Extensive experiments demonstrate that GEN360 outperforms state-of-the-art approaches in viewport prediction
-accuracy and QoE improvement on both trained and unseen viewing patterns and QoE preferences, achieving better generalization.
+> The popularity of immersive videos has prompted extensive research into neural adaptive tile-based streaming to optimize video transmission over networks with limited bandwidth. However, the diversity of users' viewing patterns and Quality of Experience (QoE) preferences has not been fully addressed yet by existing neural adaptive approaches for viewport prediction and bitrate selection. Their performance can significantly deteriorate when users' actual viewing patterns and QoE preferences differ considerably from those observed during the training phase, resulting in poor generalization. In this paper, we propose MANSY, a novel streaming system that embraces user diversity to improve generalization. Specifically, to accommodate users' diverse viewing patterns, we design a Transformer-based viewport prediction model with an efficient multi-viewport trajectory input output architecture based on implicit ensemble learning. Besides, we for the first time combine the advanced representation learning and deep reinforcement learning to train the bitrate selection model to maximize diverse QoE objectives, enabling the model to generalize across users with diverse preferences. Extensive experiments demonstrate that MANSY outperforms state-of-the-art approaches in viewport prediction accuracy and QoE improvement on both trained and unseen viewing patterns and QoE preferences, achieving better generalization.
 
 ## Requirements
 ```
 python>=3.8
-torch>=1.9.1
+torch<=2.0
 tianshou== 0.4.8
 prettytable==3.5.0
 numpy==1.24.3
@@ -23,11 +20,14 @@ Note: Other environment settings may work, but we didn't test on them.
 
 ## Folder Content
 - `dataset_preprocess`: This folder contains scripts for preprocessing datasets, such as extracting and simplifying viewport files, extracting video chunk information.
-- `viewport_prediction`: This folder contains codes for 360-degree video viewport prediction.
-- `bitrate_selection`: This folder contains codes for 360-degree bitrate selection.
+- `viewport_prediction`: This folder contains codes for immsersive video viewport prediction.
+- `bitrate_selection`: This folder contains codes for immsersive bitrate selection.
+- `datasets`: This folder contains datasets.
+- `models`: This folder contains model checkpoints saved during training. Examples are provided in this folder to better understand the file structure.
+- `results`: This folder contains training/testing results files. Examples are provided in this folder to better understand the file structure.
 
 ## Uage
-### Preprocess Dataset
+### Part 1: Preprocess Dataset
 #### Step 1: Download Video and Viewport Datasets
 
 Frist, we need to download some datasets and save it in folder `datasets`. For example, let's say we want to download Jin2022 dataset used in our paper. Download it from here: https://cuhksz-inml.github.io/head_gaze_dataset/.
@@ -120,7 +120,7 @@ If you want to add a new dataset, in addition to following the above steps, you 
 - `dataset_preprocess/hmdtrace.py`: Please specify the way to process the new viewport dataset here.
 - `dataset_preprocess/network.py`: Please specify the way to process the new network dataset here.
 
-### Viewport Prediction
+### Part 2: Viewport Prediction
 If you want to play viewport prediction, first change the working directory:
 ```sh
 cd viewport_prediction
@@ -132,7 +132,9 @@ python run_models.py --model mtio --train --test --train-dataset Jin2022 --test-
 ```
 Check file `run_model.py` for the detailed explanation of the command arguments.
 
-### Bitrate Selection
+You can customize your own models following the example of `run_model.py`.
+
+### Part 3: Bitrate Selection
 If you want to play bitrate selection, first change the working directory to `viewport_prediction`:
 ```sh
 cd viewport_prediction
@@ -154,12 +156,13 @@ By simply running the `run_simple_rl.py` with some arguments, you can run a bitr
 ```sh
 python run_simple_rl.py --epochs 100 --step-per-epoch 6000 --step-per-collect 2000 --batch-size 256 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-train-id 0 --qoe-test-ids 0 --test-on-seen --device cuda:0 --seed 1
 ```
+You can customize your own models following the example of `run_simple_rl.py`.
 
-If you wanto try *GEN360*, try the following command:
+If you wanto try *MANSY*, try the following command:
 ```sh
-python run_gen360.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per-collect 2000 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:1 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier
+python run_mansy.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per-collect 2000 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:1 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier
 ```
-Check file `run_simple_rl.py/run_gen360.py` for the detailed explanation of the command arguments.
+Check file `run_simple_rl.py/run_mansy.py` for the detailed explanation of the command arguments.
 
 ### Behavior Cloning (BC) Initialization
 Behavior cloning (BC) is a common trick to initialize the deep inforcement learning (DRL) model. Our codes also support BC initialization.
@@ -173,8 +176,8 @@ python run_expert.py --train-dataset Jin2022 --train --valid --horizon 4 --proc-
 Check `run_expert.py` for the detailed explanations of the arguments.
 
 Next, we can integrate BC into our tranining pipeline. Let's say pretrain the DRL agent with 150 BC steps:
-```
-python run_gen360.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per-collect 2000 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:1 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier --bc --bc-max-steps 150 --bc-identifier-max-steps 150
+```sh
+python run_mansy.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per-collect 2000 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:1 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier --bc --bc-max-steps 150 --bc-identifier-max-steps 150
 ```
 
 Note: In our case, we do not find BC to work quite well (negligible improvement on convergence speed or performance), so we do not report this trick in our paper.
@@ -182,10 +185,10 @@ Note: In our case, we do not find BC to work quite well (negligible improvement 
 ## Citation
 If you find this repository useful, please kindly cite our paper:
 ```
-@article{xxx,
-  title={GEN360: Generalizing Neural Adaptive 360-Degree Video Streaming With Ensemble and Representation Learning},
+@article{duo2023mansy,
+  title={MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning},
   author={Wu, Duo and Wu, Panlong and Zhang, Miao and Wang, Fangxin},
-  journal={arxiv preprint},
+  journal={arXiv preprint},
   year={2023},
   publisher={arxiv}
 }

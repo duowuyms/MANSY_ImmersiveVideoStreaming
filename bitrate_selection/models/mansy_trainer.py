@@ -8,7 +8,7 @@ from tianshou.policy import BasePolicy
 from tianshou.trainer import BaseTrainer as TianshouBaseTrainer
 from tianshou.trainer.utils import gather_info
 from tianshou.utils import BaseLogger, LazyLogger, tqdm_config
-from utils.gen360_utils import train_identifier
+from utils.mansy_utils import train_identifier
 
 
 class BaseTrainer(TianshouBaseTrainer):

@@ -4,7 +4,7 @@ import torch
 
 from tianshou.data import ReplayBuffer
 from tianshou.policy import PPOPolicy as TianshouPPOPolicy
-from utils.gen360_utils import calculate_indentifier_reward
+from utils.mansy_utils import calculate_indentifier_reward
 
 
 class PPOPolicy(TianshouPPOPolicy):
