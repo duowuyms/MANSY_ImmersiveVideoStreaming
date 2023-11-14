@@ -1,10 +1,18 @@
 # MANSY_ImmersiveVideoStreaming
-Implementation of paper "MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning" and a trace-driven simulator for immsersive (or, omnidirectional, 360-degree) video streaming.
+Implementation of paper "[MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning](https://arxiv.org/abs/2311.06812)" and a trace-driven simulator for immsersive (or, omnidirectional, 360-degree) video streaming.
 
-MANSY is short for "ense**M**ble and represent**A**tion lear**N**ing based **SY**stem for tile-based immersive video streaming". It is also named after Duo's beloved, as a way to express gratitude for her generous support towards Duo's research career.
+MANSY is short for "ense**M**ble and represent**A**tion lear**N**ing based **SY**stem for tile-based immersive video streaming". MANSY is also named after Duo's beloved, as a way of expressing gratitude for her generous support towards Duo's research career.
 
-Abstract:
-> The popularity of immersive videos has prompted extensive research into neural adaptive tile-based streaming to optimize video transmission over networks with limited bandwidth. However, the diversity of users' viewing patterns and Quality of Experience (QoE) preferences has not been fully addressed yet by existing neural adaptive approaches for viewport prediction and bitrate selection. Their performance can significantly deteriorate when users' actual viewing patterns and QoE preferences differ considerably from those observed during the training phase, resulting in poor generalization. In this paper, we propose MANSY, a novel streaming system that embraces user diversity to improve generalization. Specifically, to accommodate users' diverse viewing patterns, we design a Transformer-based viewport prediction model with an efficient multi-viewport trajectory input output architecture based on implicit ensemble learning. Besides, we for the first time combine the advanced representation learning and deep reinforcement learning to train the bitrate selection model to maximize diverse QoE objectives, enabling the model to generalize across users with diverse preferences. Extensive experiments demonstrate that MANSY outperforms state-of-the-art approaches in viewport prediction accuracy and QoE improvement on both trained and unseen viewing patterns and QoE preferences, achieving better generalization.
+Paper:
+<!-- > The popularity of immersive videos has prompted extensive research into neural adaptive tile-based streaming to optimize video transmission over networks with limited bandwidth. However, the diversity of users' viewing patterns and Quality of Experience (QoE) preferences has not been fully addressed yet by existing neural adaptive approaches for viewport prediction and bitrate selection. Their performance can significantly deteriorate when users' actual viewing patterns and QoE preferences differ considerably from those observed during the training phase, resulting in poor generalization. In this paper, we propose MANSY, a novel streaming system that embraces user diversity to improve generalization. Specifically, to accommodate users' diverse viewing patterns, we design a Transformer-based viewport prediction model with an efficient multi-viewport trajectory input output architecture based on implicit ensemble learning. Besides, we for the first time combine the advanced representation learning and deep reinforcement learning to train the bitrate selection model to maximize diverse QoE objectives, enabling the model to generalize across users with diverse preferences. Extensive experiments demonstrate that MANSY outperforms state-of-the-art approaches in viewport prediction accuracy and QoE improvement on both trained and unseen viewing patterns and QoE preferences, achieving better generalization. -->
+```
+@article{duo2023mansy,
+  title={MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning},
+  author={Wu, Duo and Wu, Panlong and Zhang, Miao and Wang, Fangxin},
+  journal={arXiv preprint arXiv:2311.06812},
+  year={2023}
+}
+```
 
 ## Requirements
 ```
@@ -164,7 +172,7 @@ python run_mansy.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per
 ```
 Check file `run_simple_rl.py/run_mansy.py` for the detailed explanation of the command arguments.
 
-### Behavior Cloning (BC) Initialization
+#### Behavior Cloning (BC) Initialization
 Behavior cloning (BC) is a common trick to initialize the deep inforcement learning (DRL) model. Our codes also support BC initialization.
 
 In our codes, we use an MPC-based policy with perfect knowledge of the trainin environment as the expert. We then use the expert to generate a set of demonstrations, which will be used to train the DRL agent with BC.
@@ -180,7 +188,7 @@ Next, we can integrate BC into our tranining pipeline. Let's say pretrain the DR
 python run_mansy.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per-collect 2000 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:1 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier --bc --bc-max-steps 150 --bc-identifier-max-steps 150
 ```
 
-Note: In our case, we do not find BC to work quite well (negligible improvement on convergence speed or performance), so we do not report this trick in our paper.
+Note: In our case, we do not find BC to work quite well (with negligible improvement on convergence speed or performance), so we do not report this trick in our paper.
 
 ## Citation
 If you find this repository useful, please kindly cite our paper:
@@ -188,8 +196,7 @@ If you find this repository useful, please kindly cite our paper:
 @article{duo2023mansy,
   title={MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning},
   author={Wu, Duo and Wu, Panlong and Zhang, Miao and Wang, Fangxin},
-  journal={arXiv preprint},
-  year={2023},
-  publisher={arxiv}
+  journal={arXiv preprint arXiv:2311.06812},
+  year={2023}
 }
 ```
