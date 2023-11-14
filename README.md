@@ -29,7 +29,7 @@ Note: Other environment settings may work, but we didn't test on them.
 ## Folder Content
 - `dataset_preprocess`: This folder contains scripts for preprocessing datasets, such as extracting and simplifying viewport files, extracting video chunk information.
 - `viewport_prediction`: This folder contains codes for immsersive video viewport prediction.
-- `bitrate_selection`: This folder contains codes for immsersive bitrate selection.
+- `bitrate_selection`: This folder contains codes for immsersive video bitrate selection.
 - `datasets`: This folder contains datasets.
 - `models`: This folder contains model checkpoints saved during training. Examples are provided in this folder to better understand the file structure.
 - `results`: This folder contains training/testing results files. Examples are provided in this folder to better understand the file structure.
@@ -38,7 +38,7 @@ Note: Other environment settings may work, but we didn't test on them.
 ### Part 1: Preprocess Dataset
 #### Step 1: Download Video and Viewport Datasets
 
-Frist, we need to download some datasets and save it in folder `datasets`. For example, let's say we want to download Jin2022 dataset used in our paper. Download it from here: https://cuhksz-inml.github.io/head_gaze_dataset/.
+Frist, we need to download datasets and save them in folder `datasets`. For example, let's say we want to download Jin2022 dataset used in our paper. Download it from here: https://cuhksz-inml.github.io/head_gaze_dataset/.
 
 Save the videos in the dataset in the folder `datasets/raw/Jin2022/videos`, and please organize the videos in the following format:
 ```
@@ -74,7 +74,7 @@ Note that if you determine to use the Jin2022 dataset, please kindly cite the fo
   year={2022}
 }
 ```
-Besides, the original Jin2022 dataset does not contain videos in different bitrate versions, so you need to transform them manually (possibly using ffmpeg).
+Besides, the original Jin2022 dataset does not contain videos in different bitrate versions, so you need to manually transform them (possibly using ffmpeg).
 
 #### Step 2: Download Bandwidth Dataset 
 
@@ -166,9 +166,9 @@ python run_simple_rl.py --epochs 100 --step-per-epoch 6000 --step-per-collect 20
 ```
 You can customize your own models following the example of `run_simple_rl.py`.
 
-If you wanto try *MANSY*, try the following command:
+If you want to try *MANSY*, try the following command:
 ```sh
-python run_mansy.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per-collect 2000 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:1 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier
+python run_mansy.py --train --test --epoch 1000 --step-per-epoch 4096 --step-per-collect 4096 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:0 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier
 ```
 Check file `run_simple_rl.py/run_mansy.py` for the detailed explanation of the command arguments.
 
@@ -185,7 +185,7 @@ Check `run_expert.py` for the detailed explanations of the arguments.
 
 Next, we can integrate BC into our tranining pipeline. Let's say pretrain the DRL agent with 150 BC steps:
 ```sh
-python run_mansy.py --train --test --epoch 1000 --step-per-epoch 5000 --step-per-collect 2000 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:1 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier --bc --bc-max-steps 150 --bc-identifier-max-steps 150
+python run_mansy.py --train --test --epoch 1000 --step-per-epoch 4096 --step-per-collect 4096 --lr 0.0005 --batch-size 512 --train --train-dataset Jin2022 --test --test-dataset Jin2022 --qoe-test-ids 0 1 2 3 --test-on-seen --lamb 0.5 --train-identifier --identifier-epoch 1000 --identifier-lr 0.0001 --device cuda:0 --gamma 0.95 --ent-coef 0.02 --seed 5 --use-identifier --bc --bc-max-steps 150 --bc-identifier-max-steps 150
 ```
 
 Note: In our case, we do not find BC to work quite well (with negligible improvement on convergence speed or performance), so we do not report this trick in our paper.
