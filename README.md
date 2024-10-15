@@ -1,5 +1,5 @@
 # MANSY_ImmersiveVideoStreaming
-Implementation of paper "[MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning](https://arxiv.org/abs/2311.06812)" and a trace-driven simulator for immsersive (or, omnidirectional, 360-degree) video streaming.
+Implementation of paper "[MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning](https://arxiv.org/abs/2311.06812)" (accepted by IEEE Transactions on Mobile Computing) and a trace-driven simulator for immsersive (or, omnidirectional, 360-degree) video streaming.
 
 MANSY is short for "ense**M**ble and represent**A**tion lear**N**ing based **SY**stem for tile-based immersive video streaming". MANSY is also named after Duo's beloved, as a way of expressing gratitude for her generous support towards Duo's research career.
 
