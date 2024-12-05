@@ -193,10 +193,11 @@ Note: In our case, we do not find BC to work quite well (with negligible improve
 ## Citation
 If you find this repository useful, please kindly cite our paper:
 ```
-@article{duo2023mansy,
-  title={MANSY: Generalizing Neural Adaptive Immersive Video Streaming With Ensemble and Representation Learning},
+@article{wu2024mansy,
+  title={Mansy: Generalizing neural adaptive immersive video streaming with ensemble and representation learning},
   author={Wu, Duo and Wu, Panlong and Zhang, Miao and Wang, Fangxin},
-  journal={arXiv preprint arXiv:2311.06812},
-  year={2023}
+  journal={IEEE Transactions on Mobile Computing},
+  year={2024},
+  publisher={IEEE}
 }
 ```
